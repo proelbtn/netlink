@@ -273,6 +273,7 @@ type SEG6LocalEncap struct {
 	In6Addr  net.IP
 	Iif      int
 	Oif      int
+	Vrftable int
 }
 
 func (e *SEG6LocalEncap) Type() int {
@@ -306,6 +307,9 @@ func (e *SEG6LocalEncap) Decode(buf []byte) error {
 		case nl.SEG6_LOCAL_OIF:
 			e.Oif = int(native.Uint32(attr.Value[0:4]))
 			e.Flags[nl.SEG6_LOCAL_OIF] = true
+		case nl.SEG6_LOCAL_VRFTABLE:
+			e.Vrftable = int(native.Uint32(attr.Value[0:4]))
+			e.Flags[nl.SEG6_LOCAL_VRFTABLE] = true
 		}
 	}
 	return err
@@ -365,6 +369,13 @@ func (e *SEG6LocalEncap) Encode() ([]byte, error) {
 		native.PutUint16(attr, 8)
 		native.PutUint16(attr[2:], nl.SEG6_LOCAL_OIF)
 		native.PutUint32(attr[4:], uint32(e.Oif))
+		res = append(res, attr...)
+	}
+	if e.Flags[nl.SEG6_LOCAL_OIF] {
+		attr := make([]byte, 8)
+		native.PutUint16(attr, 8)
+		native.PutUint16(attr[2:], nl.SEG6_LOCAL_VRFTABLE)
+		native.PutUint32(attr[4:], uint32(e.Vrftable))
 		res = append(res, attr...)
 	}
 	return res, err
